@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+*.egg-info/
+
+# Secrets
+.env
+
+# Generated artifacts (reproducible from scripts)
+logs/*.log
+models/*.joblib
+models/*.json
+data/*.csv
+dataset/*.csv
+reports/*.html
+reports/*.md
+reports/*.pdf
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
