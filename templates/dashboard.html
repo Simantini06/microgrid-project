@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Microgrid AI - Generative vs Agentic</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet">
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js" charset="utf-8"></script>
+  <style>
+    body { background:#f6f8fa; }
+    .hero { background:linear-gradient(120deg,#0d1b3e,#123a6b); color:#fff; }
+    .chart { background:#fff; border-radius:.6rem; box-shadow:0 1px 3px rgba(0,0,0,.08); padding:.5rem; }
+    .best { font-weight:700; color:#0a7d33; }
+    .metric-label { color:#333; }
+    code.tag { background:#eef; padding:.1rem .35rem; border-radius:.25rem; }
+    .rat { font-size:.86rem; }
+  </style>
+</head>
+<body>
+<div class="hero py-4 mb-4 shadow">
+  <div class="container">
+    <h1 class="h3 mb-1">Generative AI vs Agentic AI for Microgrid Operation</h1>
+    <div class="opacity-75">A comparative analysis &mdash; rule-based vs generative vs agentic energy management</div>
+  </div>
+</div>
+
+<div class="container pb-5">
+{% if not ready %}
+  <div class="alert alert-warning">
+    No comparison found. Run <code>python main.py compare</code> first, then reload.
+  </div>
+{% else %}
+
+  <div class="row g-3 mb-4">
+    <div class="col-md-4"><div class="p-3 bg-white rounded shadow-sm">
+      <div class="text-muted small">Evaluation window</div>
+      <div class="h5 mb-0">{{ window_hours }} hours ({{ (window_hours/24)|int }} days)</div>
+      <div class="small text-muted">from {{ start_date }}</div>
+    </div></div>
+    <div class="col-md-4"><div class="p-3 bg-white rounded shadow-sm">
+      <div class="text-muted small">LLM (both AI approaches)</div>
+      <div class="h5 mb-0"><code class="tag">{{ model }}</code></div>
+      <div class="small text-muted">Groq &mdash; same model, fair comparison</div>
+    </div></div>
+    <div class="col-md-4"><div class="p-3 bg-white rounded shadow-sm">
+      <div class="text-muted small">Approaches compared</div>
+      <div class="h5 mb-0">{{ approaches | join(' &middot; ') | safe }}</div>
+      <div class="small text-muted">identical physics &amp; metrics</div>
+    </div></div>
+  </div>
+
+  <h2 class="h5 mb-3">Head-to-head metrics</h2>
+  <div class="table-responsive mb-4">
+    <table class="table table-sm table-bordered bg-white align-middle">
+      <thead class="table-light">
+        <tr><th>Metric</th>
+          {% for a in approaches %}<th class="text-end">{{ a }}</th>{% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in metric_rows %}
+        <tr>
+          <td class="metric-label">{{ row.label }}</td>
+          {% for cell in row.cells %}
+            <td class="text-end {% if loop.index0 == row.best %}best{% endif %}">{{ cell }}</td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <div class="small text-muted">Green = best value in each row.</div>
+  </div>
+
+  <h2 class="h5 mb-3">Outcomes &amp; the cost of intelligence</h2>
+  <div class="row g-3 mb-4">
+    <div class="col-lg-4"><div class="chart"><div id="c_cost"></div></div></div>
+    <div class="col-lg-4"><div class="chart"><div id="c_co2"></div></div></div>
+    <div class="col-lg-4"><div class="chart"><div id="c_tok"></div></div></div>
+  </div>
+
+  <h2 class="h5 mb-3">Hourly behaviour</h2>
+  <div class="row g-3 mb-4">
+    <div class="col-lg-6"><div class="chart"><div id="c_soc"></div></div></div>
+    <div class="col-lg-6"><div class="chart"><div id="c_imp"></div></div></div>
+    <div class="col-lg-12"><div class="chart"><div id="c_cum"></div></div></div>
+  </div>
+
+  {% if rationales %}
+  <h2 class="h5 mb-3">Sample LLM decisions &amp; rationales
+    <span class="small text-muted">(first {{ rationales|length }} hours)</span></h2>
+  <div class="table-responsive mb-4">
+    <table class="table table-sm bg-white rat align-middle">
+      <thead class="table-light"><tr>
+        <th>Time</th><th class="text-end">Price</th>
+        <th class="text-end">Gen kW</th><th>Generative rationale</th>
+        <th class="text-end">Agent kW</th><th>Agentic rationale</th>
+      </tr></thead>
+      <tbody>
+        {% for r in rationales %}
+        <tr>
+          <td class="text-nowrap">{{ r.timestamp[5:16] }}</td>
+          <td class="text-end">{{ r.price }}</td>
+          <td class="text-end">{{ r.gen_batt }}</td><td>{{ r.gen_rat }}</td>
+          <td class="text-end">{{ r.ag_batt }}</td><td>{{ r.ag_rat }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
+  <p class="small text-muted">
+    Results are on clearly-labelled synthetic data. See
+    <code>reports/comparison.md</code> for the full written analysis.
+  </p>
+
+  <script>
+    const figs = {
+      c_cost: {{ fig_cost_saved | safe }},
+      c_co2:  {{ fig_co2_saved | safe }},
+      c_tok:  {{ fig_tokens | safe }},
+      c_soc:  {{ fig_soc | safe }},
+      c_imp:  {{ fig_import | safe }},
+      c_cum:  {{ fig_cumcost | safe }},
+    };
+    for (const [id, fig] of Object.entries(figs)) {
+      Plotly.newPlot(id, fig.data, fig.layout, {responsive:true, displayModeBar:false});
+    }
+  </script>
+{% endif %}
+</div>
+</body>
+</html>

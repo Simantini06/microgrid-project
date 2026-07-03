@@ -24,7 +24,8 @@ LOGS_DIR = BASE_DIR / "logs"
 STATIC_DIR = BASE_DIR / "static"
 TEMPLATES_DIR = BASE_DIR / "templates"
 
-for _d in (DATASET_DIR, DATA_DIR, MODELS_DIR, REPORTS_DIR, LOGS_DIR):
+for _d in (DATASET_DIR, DATA_DIR, MODELS_DIR, REPORTS_DIR, LOGS_DIR,
+           STATIC_DIR, TEMPLATES_DIR):
     _d.mkdir(exist_ok=True)
 
 # --- Groq / LLM configuration ----------------------------------------------

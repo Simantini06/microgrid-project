@@ -129,6 +129,18 @@ cost-effective**, the generative LLM's value is **explanation** rather than
 better control, and the agentic approach's extra autonomy/compute **did not pay
 off** — a deliberately nuanced result, not a foregone "AI wins".
 
+```bash
+python main.py dashboard          # Stage 7: local dashboard at 127.0.0.1:8000
+python main.py dashboard --port 9000
+```
+
+Stage 7 serves a local **FastAPI + Bootstrap 5 + Plotly** dashboard (`backend/`,
+`templates/dashboard.html`): the head-to-head metric table, headline
+savings/token bars, per-approach hourly plots (battery SoC, grid import,
+cumulative cost), and a sample of the LLM decision rationales side by side. No
+cloud or Docker — open http://127.0.0.1:8000 after launching. (Bootstrap/Plotly
+load from CDN, so the first load needs internet.)
+
 > Requires Python 3.10+ (developed on 3.10; 3.12+ recommended).
 
 ---
@@ -163,7 +175,7 @@ Microgrid_AI/
 - [x] **Stage 4** — Generative AI (LangChain + Groq; recommends + explains)
 - [x] **Stage 5** — Agentic AI (LangGraph ReAct agent; simulates + acts)
 - [x] **Stage 6** — Comparison harness (results table + written analysis)
-- [ ] Stage 7 — Dashboard (FastAPI + Bootstrap 5 + Plotly)
+- [x] **Stage 7** — Dashboard (FastAPI + Bootstrap 5 + Plotly, local)
 - [ ] Stage 8 — Explanation website
 - [ ] Stage 9 — Report generation (HTML / Markdown / PDF-ready)
 - [ ] Stage 10 — README & polish

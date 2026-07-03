@@ -68,8 +68,12 @@ def cmd_compare(args: argparse.Namespace) -> None:
     run_comparison(rerun=args.rerun)
 
 
-def cmd_dashboard(_args: argparse.Namespace) -> None:
-    log.info(_STUB.format(n=7, cmd="dashboard"))
+def cmd_dashboard(args: argparse.Namespace) -> None:
+    import uvicorn
+
+    log.info("Starting dashboard at http://%s:%d  (Ctrl+C to stop)",
+             args.host, args.port)
+    uvicorn.run("backend.app:app", host=args.host, port=args.port, reload=False)
 
 
 def cmd_report(_args: argparse.Namespace) -> None:
@@ -127,6 +131,14 @@ def build_parser() -> argparse.ArgumentParser:
     subparsers["compare"].add_argument(
         "--rerun", action="store_true",
         help="re-run all three approaches instead of reusing saved runs",
+    )
+
+    # Stage 7 options: dashboard host/port.
+    subparsers["dashboard"].add_argument(
+        "--host", default="127.0.0.1", help="bind host (default: 127.0.0.1)",
+    )
+    subparsers["dashboard"].add_argument(
+        "--port", type=int, default=8000, help="bind port (default: 8000)",
     )
     return parser
 
