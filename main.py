@@ -15,8 +15,11 @@ log = get_logger("main")
 _STUB = "[Stage {n}] '{cmd}' is scaffolded but not yet implemented."
 
 
-def cmd_data(_args: argparse.Namespace) -> None:
-    log.info(_STUB.format(n=1, cmd="data"))
+def cmd_data(args: argparse.Namespace) -> None:
+    # Imported lazily so `--help` and other stages don't pay the pandas import.
+    from datagen.generate import generate_dataset
+
+    generate_dataset(days=args.days, seed=args.seed)
 
 
 def cmd_forecast(_args: argparse.Namespace) -> None:
@@ -71,9 +74,21 @@ def build_parser() -> argparse.ArgumentParser:
         epilog="Run a stage, e.g.:  python main.py data",
     )
     sub = parser.add_subparsers(dest="command", metavar="<command>")
+    subparsers = {}
     for name, help_text, func in _COMMANDS:
         sp = sub.add_parser(name, help=help_text)
         sp.set_defaults(func=func)
+        subparsers[name] = sp
+
+    # Stage 1 options.
+    subparsers["data"].add_argument(
+        "--days", type=int, default=365,
+        help="days of hourly data to generate (default: 365)",
+    )
+    subparsers["data"].add_argument(
+        "--seed", type=int, default=42,
+        help="random seed for reproducibility (default: 42)",
+    )
     return parser
 
 

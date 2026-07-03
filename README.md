@@ -52,8 +52,14 @@ copy .env.example .env       # then edit .env and add your GROQ_API_KEY
 
 ```bash
 python main.py --help        # list all stage commands
-python main.py data          # Stage 1 (when implemented)
+python main.py data          # Stage 1: generate dataset (default 365 days, seed 42)
+python main.py data --days 90 --seed 7   # smaller reproducible dataset
 ```
+
+Stage 1 writes `data/microgrid_dataset.csv` (8,760 hourly rows) and
+`data/data_dictionary.md`. The data is **clearly-labelled synthetic** — built
+from documented physical models (solar geometry, turbine power curve, TOU
+tariff), not measured field data, and fully reproducible from the seed.
 
 > Requires Python 3.10+ (developed on 3.10; 3.12+ recommended).
 
@@ -82,7 +88,7 @@ Microgrid_AI/
 
 ## Build stages
 - [x] **Stage 0** — Scaffold (structure, config, logging, CLI, README skeleton)
-- [ ] Stage 1 — Data (acquire/clean/feature-engineer + data dictionary)
+- [x] **Stage 1** — Data (synthetic hourly dataset + data dictionary, reproducible)
 - [ ] Stage 2 — Forecasting (RF / GB / XGBoost; MAE/RMSE; persist best)
 - [ ] Stage 3 — Rule-based baseline EMS
 - [ ] Stage 4 — Generative AI (LangChain + Groq)
