@@ -25,12 +25,20 @@ def run_controller(
     controller: Controller,
     window: pd.DataFrame | None = None,
 ) -> tuple[SimulationResult, dict]:
-    """Simulate one controller and return (raw result, metric dict)."""
+    """Simulate one controller and return (raw result, metric dict).
+
+    Uses a per-controller checkpoint so an interrupted run (e.g. the long,
+    rate-limited agentic run) can be resumed by simply re-issuing the command.
+    The checkpoint is cleared once the full window completes.
+    """
     if window is None:
         window = load_eval_window()
-    sim = simulate(window, controller)
+    checkpoint = config.REPORTS_DIR / f".ckpt_{_slug(controller.name)}.csv"
+    sim = simulate(window, controller, checkpoint_path=checkpoint)
     metrics = compute_metrics(sim)
     log.info("[%s] metrics:\n%s", controller.name, format_metrics(metrics))
+    if checkpoint.exists():
+        checkpoint.unlink()  # full run finished -> checkpoint no longer needed
     return sim, metrics
 
 

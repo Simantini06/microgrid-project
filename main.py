@@ -49,8 +49,17 @@ def cmd_llm(args: argparse.Namespace) -> None:
     save_run(sim, metrics)
 
 
-def cmd_agentic(_args: argparse.Namespace) -> None:
-    log.info(_STUB.format(n=5, cmd="agentic"))
+def cmd_agentic(args: argparse.Namespace) -> None:
+    from agents.agentic import AgenticController
+    from ems.environment import load_eval_window
+    from ems.runner import run_controller, save_run
+
+    window = load_eval_window()
+    if args.hours:
+        window = window.head(args.hours)
+        log.info("Limiting run to first %d hour(s) for testing.", args.hours)
+    sim, metrics = run_controller(AgenticController(), window)
+    save_run(sim, metrics)
 
 
 def cmd_compare(_args: argparse.Namespace) -> None:

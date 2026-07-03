@@ -21,6 +21,7 @@ import time
 
 from langchain_core.messages import HumanMessage, SystemMessage
 
+import config
 from ems.environment import Controller, Decision, DecisionContext
 from llm.client import get_chat_llm
 from utils.logger import get_logger
@@ -83,7 +84,7 @@ class GenerativeController(Controller):
     name = "Generative-AI"
 
     def __init__(self, llm=None) -> None:
-        self.llm = llm or get_chat_llm()
+        self.llm = llm or get_chat_llm(config.EMS_LLM_MODEL)
 
     def decide(self, ctx: DecisionContext) -> Decision:
         messages = [

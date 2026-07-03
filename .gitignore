@@ -18,6 +18,9 @@ dataset/*.csv
 reports/*.html
 reports/*.md
 reports/*.pdf
+reports/*.csv
+reports/*.json
+reports/.ckpt_*.csv
 
 # OS / editor
 .DS_Store

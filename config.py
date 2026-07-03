@@ -34,6 +34,13 @@ GROQ_MODEL: str = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
 GROQ_MODEL_FAST: str = os.getenv("GROQ_MODEL_FAST", "llama-3.1-8b-instant")
 LLM_TEMPERATURE: float = float(os.getenv("LLM_TEMPERATURE", "0.2"))
 
+# Model used by BOTH EMS controllers (generative + agentic) so the comparison
+# is fair (same model, different paradigm). Defaults to the fast 8B model: the
+# agentic loop makes several calls/hour, and the free Groq tier caps the 70B
+# model at 100k tokens/day - too little for a full agentic week. Set
+# EMS_LLM_MODEL=llama-3.3-70b-versatile in .env if you have paid quota.
+EMS_LLM_MODEL: str = os.getenv("EMS_LLM_MODEL", GROQ_MODEL_FAST)
+
 # --- Domain constants (India context: Rs and CO2) ---------------------------
 GRID_IMPORT_PRICE: float = float(os.getenv("GRID_IMPORT_PRICE", "8.0"))  # Rs/kWh peak
 CO2_PER_KWH_GRID: float = float(os.getenv("CO2_PER_KWH_GRID", "0.82"))   # kg CO2 / kWh
@@ -60,8 +67,11 @@ BATTERY_INIT_SOC: float = 0.50         # state of charge at simulation start
 GRID_EXPORT_PRICE: float = 3.0         # feed-in tariff (Rs/kWh) for exports
 
 # --- Common evaluation window (same for baseline / LLM / agentic) -----------
-EVAL_START_DATE: str = "2024-04-08"    # a Monday; summer week with rich dynamics
-EVAL_DAYS: int = 7                     # horizon all three approaches are scored on
+# Friday -> Sunday so the window spans a weekday and a full weekend. Kept to
+# 3 days so the agentic run (several Groq calls/hour, throttled by the free
+# tier's tokens-per-minute limit) completes end-to-end in reasonable time.
+EVAL_START_DATE: str = "2024-04-12"    # a Friday
+EVAL_DAYS: int = 3                     # horizon all three approaches are scored on
 
 
 def require_api_key() -> str:

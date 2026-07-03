@@ -23,6 +23,14 @@ LangChain · LangGraph · FastAPI · Bootstrap 5 · SQLite.
 [Groq docs](https://console.groq.com/docs/models)):
 `llama-3.3-70b-versatile` (reasoning/agents) and `llama-3.1-8b-instant` (fast).
 
+Both the Generative-AI and Agentic-AI controllers use the **same** model
+(`EMS_LLM_MODEL`, default `llama-3.1-8b-instant`) so the comparison is fair —
+same model, different paradigm. The 8B default is deliberate: the agentic loop
+makes several calls per hour, and Groq's free tier caps the 70B model at 100k
+tokens/day (too little for a full agentic week), whereas the 8B model's daily
+budget comfortably fits it. Set `EMS_LLM_MODEL=llama-3.3-70b-versatile` in `.env`
+if you have paid Groq quota and want higher-quality reasoning.
+
 ## Comparison metrics (the spine of the project)
 - Forecast accuracy: **MAE / RMSE** per target (solar, wind, demand, SoC)
 - Daily **energy cost (₹)**, **% renewable utilisation**, **CO₂ saved**
@@ -95,6 +103,18 @@ records the real cost of the LLM — **Groq call count, tokens, latency** — an
 saves a `rationale` per hour. Requires `GROQ_API_KEY` in `.env`. Unparseable
 replies fall back to a safe idle action, so a hiccup never crashes the run.
 
+```bash
+python main.py agentic            # Stage 5: Agentic-AI controller (Groq + tools)
+python main.py agentic --hours 4  # cheap smoke test (a few hours only)
+```
+
+Stage 5 adds the **Agentic-AI** controller (`agents/`): a LangGraph ReAct agent
+that, each hour, calls a `evaluate_battery_action` tool to simulate candidate
+set-points against the real environment physics, reads back their cost / CO₂ /
+resulting SoC, then **autonomously commits** the best action (closed-loop, no
+human). It accounts for every LLM call and token across the tool-use rounds
+(typically 2+ calls/hour). Same eval week and metrics as the other two.
+
 > Requires Python 3.10+ (developed on 3.10; 3.12+ recommended).
 
 ---
@@ -127,7 +147,7 @@ Microgrid_AI/
 - [x] **Stage 2** — Forecasting (RF / GB / XGBoost; MAE/RMSE vs naive; persist best)
 - [x] **Stage 3** — Rule-based baseline EMS (shared environment + metrics)
 - [x] **Stage 4** — Generative AI (LangChain + Groq; recommends + explains)
-- [ ] Stage 5 — Agentic AI (LangGraph)
+- [x] **Stage 5** — Agentic AI (LangGraph ReAct agent; simulates + acts)
 - [ ] Stage 6 — Comparison harness (results table + analysis)
 - [ ] Stage 7 — Dashboard (FastAPI + Bootstrap 5 + Plotly)
 - [ ] Stage 8 — Explanation website

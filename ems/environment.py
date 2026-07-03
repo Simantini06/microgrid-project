@@ -16,6 +16,7 @@ from __future__ import annotations
 import math
 import time
 from dataclasses import dataclass, field
+from pathlib import Path
 
 import pandas as pd
 
@@ -114,6 +115,7 @@ class HourResult:
     rationale: str = ""
     llm_calls: int = 0
     llm_tokens: int = 0
+    decide_ms: float = 0.0             # wall-clock to produce this decision
 
 
 class MicrogridEnvironment:
@@ -199,24 +201,49 @@ class SimulationResult:
     extras: dict = field(default_factory=dict)
 
 
+def _load_checkpoint(
+    path: Path, window: pd.DataFrame, controller_name: str
+) -> list[dict]:
+    """Return already-computed hour rows if the checkpoint matches this window."""
+    if path is None or not path.exists():
+        return []
+    prev = pd.read_csv(path)
+    wins = window["timestamp"].astype(str).tolist()
+    if len(prev) <= len(window) and \
+            prev["timestamp"].astype(str).tolist() == wins[:len(prev)]:
+        log.info("[%s] resuming from checkpoint: %d/%d hours done.",
+                 controller_name, len(prev), len(window))
+        return prev.to_dict("records")
+    log.warning("[%s] checkpoint does not match window -> starting fresh.",
+                controller_name)
+    path.unlink()
+    return []
+
+
 def simulate(
     window: pd.DataFrame,
     controller: Controller,
     init_soc: float = config.BATTERY_INIT_SOC,
+    checkpoint_path: Path | None = None,
 ) -> SimulationResult:
     """Run `controller` over `window` and return the per-hour settled log.
 
     `window` must contain the actual columns (solar_power_kw, wind_power_kw,
     demand_kw, price_inr_per_kwh) and the forecast columns produced by
     `forecast.predict.add_forecasts` (solar_power_kw_forecast, ...).
+
+    If `checkpoint_path` is given, each settled hour is appended to it and a
+    re-run resumes from where a previous (possibly interrupted) run stopped -
+    important for the long, rate-limited agentic run. Totals are derived from the
+    per-hour rows, so they stay correct across a resume.
     """
     env = MicrogridEnvironment()
-    soc = init_soc
-    rows: list[HourResult] = []
-    total_calls = total_tokens = 0
-    total_decide_time = 0.0
+    rows: list[dict] = _load_checkpoint(checkpoint_path, window, controller.name)
+    start_idx = len(rows)
+    soc = float(rows[-1]["soc"]) if rows else init_soc
 
-    for _, r in window.iterrows():
+    for i in range(start_idx, len(window)):
+        r = window.iloc[i]
         ctx = DecisionContext(
             timestamp=str(r["timestamp"]),
             hour=int(r["hour"]),
@@ -229,7 +256,7 @@ def simulate(
 
         t0 = time.perf_counter()
         decision = controller.decide(ctx)
-        total_decide_time += time.perf_counter() - t0
+        decide_ms = (time.perf_counter() - t0) * 1000.0
 
         result = env.apply(
             soc=soc,
@@ -243,13 +270,20 @@ def simulate(
         result.rationale = decision.rationale
         result.llm_calls = decision.llm_calls
         result.llm_tokens = decision.llm_tokens
+        result.decide_ms = decide_ms
 
         soc = result.soc
-        total_calls += decision.llm_calls
-        total_tokens += decision.llm_tokens
-        rows.append(result)
+        rows.append(result.__dict__)
+        if checkpoint_path is not None:
+            pd.DataFrame([result.__dict__]).to_csv(
+                checkpoint_path, mode="a",
+                header=not checkpoint_path.exists(), index=False,
+            )
 
-    hourly = pd.DataFrame([r.__dict__ for r in rows])
+    hourly = pd.DataFrame(rows)
+    total_calls = int(hourly["llm_calls"].sum())
+    total_tokens = int(hourly["llm_tokens"].sum())
+    total_decide_time = float(hourly["decide_ms"].sum()) / 1000.0
     log.info(
         "[%s] simulated %d h | LLM calls=%d tokens=%d | decide time=%.3fs",
         controller.name, len(hourly), total_calls, total_tokens,
