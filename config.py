@@ -53,7 +53,15 @@ BATTERY_MAX_CHARGE_KW: float = 25.0    # max charge power
 BATTERY_MAX_DISCHARGE_KW: float = 25.0  # max discharge power
 BATTERY_MIN_SOC: float = 0.20          # do not discharge below this (health)
 BATTERY_MAX_SOC: float = 0.95          # do not charge above this (health)
-BATTERY_ROUND_TRIP_EFF: float = 0.90   # round-trip efficiency (0.95 each way)
+BATTERY_ROUND_TRIP_EFF: float = 0.90   # round-trip efficiency (~0.95 each way)
+BATTERY_INIT_SOC: float = 0.50         # state of charge at simulation start
+
+# --- Grid tariff (import price is GRID_IMPORT_PRICE above) -------------------
+GRID_EXPORT_PRICE: float = 3.0         # feed-in tariff (Rs/kWh) for exports
+
+# --- Common evaluation window (same for baseline / LLM / agentic) -----------
+EVAL_START_DATE: str = "2024-04-08"    # a Monday; summer week with rich dynamics
+EVAL_DAYS: int = 7                     # horizon all three approaches are scored on
 
 
 def require_api_key() -> str:

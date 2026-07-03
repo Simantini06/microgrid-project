@@ -29,7 +29,11 @@ def cmd_forecast(_args: argparse.Namespace) -> None:
 
 
 def cmd_baseline(_args: argparse.Namespace) -> None:
-    log.info(_STUB.format(n=3, cmd="baseline"))
+    from ems.baseline import RuleBasedController
+    from ems.runner import run_controller, save_run
+
+    sim, metrics = run_controller(RuleBasedController())
+    save_run(sim, metrics)
 
 
 def cmd_llm(_args: argparse.Namespace) -> None:

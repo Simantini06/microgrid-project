@@ -72,6 +72,17 @@ persists the best model per target to `models/`. Metrics land in
 calendar + lagged-actual features (realistic day-ahead framing — no perfect
 future weather); wind is deliberately the hardest target.
 
+```bash
+python main.py baseline      # Stage 3: run the rule-based EMS over the eval week
+```
+
+Stage 3 introduces the shared **EMS environment** (`ems/`): battery physics,
+energy balance, cost/CO₂/renewable accounting, and a common controller contract.
+Controllers **decide on forecasts**; the environment **settles on actuals**. The
+rule-based controller (no LLM) is the comparison floor — it writes
+`reports/run_rule_based_metrics.json` and `reports/run_rule_based_hourly.csv`.
+All three approaches are scored on the **same** evaluation week and metrics.
+
 > Requires Python 3.10+ (developed on 3.10; 3.12+ recommended).
 
 ---
@@ -84,6 +95,7 @@ Microgrid_AI/
   requirements.txt   # pinned dependencies
   .env.example       # template for secrets (copy to .env)
   forecast/          # Stage 2 — forecasting models
+  ems/               # Stage 3 — shared environment, metrics, rule-based EMS
   agents/            # Stage 5 — LangGraph multi-agent system
   llm/               # Stage 4 — LangChain + Groq generative layer
   backend/           # Stage 6/7 — comparison harness + FastAPI
@@ -101,7 +113,7 @@ Microgrid_AI/
 - [x] **Stage 0** — Scaffold (structure, config, logging, CLI, README skeleton)
 - [x] **Stage 1** — Data (synthetic hourly dataset + data dictionary, reproducible)
 - [x] **Stage 2** — Forecasting (RF / GB / XGBoost; MAE/RMSE vs naive; persist best)
-- [ ] Stage 3 — Rule-based baseline EMS
+- [x] **Stage 3** — Rule-based baseline EMS (shared environment + metrics)
 - [ ] Stage 4 — Generative AI (LangChain + Groq)
 - [ ] Stage 5 — Agentic AI (LangGraph)
 - [ ] Stage 6 — Comparison harness (results table + analysis)
