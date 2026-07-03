@@ -23,7 +23,9 @@ def cmd_data(args: argparse.Namespace) -> None:
 
 
 def cmd_forecast(_args: argparse.Namespace) -> None:
-    log.info(_STUB.format(n=2, cmd="forecast"))
+    from forecast.train import train_all
+
+    train_all()
 
 
 def cmd_baseline(_args: argparse.Namespace) -> None:

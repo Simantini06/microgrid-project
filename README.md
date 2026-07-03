@@ -61,6 +61,17 @@ Stage 1 writes `data/microgrid_dataset.csv` (8,760 hourly rows) and
 from documented physical models (solar geometry, turbine power curve, TOU
 tariff), not measured field data, and fully reproducible from the seed.
 
+```bash
+python main.py forecast      # Stage 2: train solar/wind/demand forecasters
+```
+
+Stage 2 trains RandomForest / GradientBoosting / XGBoost per target on a
+time-ordered hold-out split, compares them to a seasonal-naive baseline, and
+persists the best model per target to `models/`. Metrics land in
+`models/forecast_metrics.json` and `reports/forecast_metrics.md`. Forecasts use
+calendar + lagged-actual features (realistic day-ahead framing — no perfect
+future weather); wind is deliberately the hardest target.
+
 > Requires Python 3.10+ (developed on 3.10; 3.12+ recommended).
 
 ---
@@ -89,7 +100,7 @@ Microgrid_AI/
 ## Build stages
 - [x] **Stage 0** — Scaffold (structure, config, logging, CLI, README skeleton)
 - [x] **Stage 1** — Data (synthetic hourly dataset + data dictionary, reproducible)
-- [ ] Stage 2 — Forecasting (RF / GB / XGBoost; MAE/RMSE; persist best)
+- [x] **Stage 2** — Forecasting (RF / GB / XGBoost; MAE/RMSE vs naive; persist best)
 - [ ] Stage 3 — Rule-based baseline EMS
 - [ ] Stage 4 — Generative AI (LangChain + Groq)
 - [ ] Stage 5 — Agentic AI (LangGraph)
