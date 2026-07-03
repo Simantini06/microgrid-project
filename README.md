@@ -115,6 +115,20 @@ resulting SoC, then **autonomously commits** the best action (closed-loop, no
 human). It accounts for every LLM call and token across the tool-use rounds
 (typically 2+ calls/hour). Same eval week and metrics as the other two.
 
+```bash
+python main.py compare           # Stage 6: build the head-to-head comparison
+python main.py compare --rerun   # force fresh runs of all three approaches
+```
+
+Stage 6 assembles all three runs into one head-to-head table across every metric
+and writes a grounded written analysis (`reports/comparison.md` +
+`comparison.json`). By default it **reuses** the saved runs (so it never
+re-spends Groq tokens); `--rerun` forces fresh runs. On the synthetic eval
+window the honest finding is that the **rule-based baseline is the most
+cost-effective**, the generative LLM's value is **explanation** rather than
+better control, and the agentic approach's extra autonomy/compute **did not pay
+off** — a deliberately nuanced result, not a foregone "AI wins".
+
 > Requires Python 3.10+ (developed on 3.10; 3.12+ recommended).
 
 ---
@@ -148,7 +162,7 @@ Microgrid_AI/
 - [x] **Stage 3** — Rule-based baseline EMS (shared environment + metrics)
 - [x] **Stage 4** — Generative AI (LangChain + Groq; recommends + explains)
 - [x] **Stage 5** — Agentic AI (LangGraph ReAct agent; simulates + acts)
-- [ ] Stage 6 — Comparison harness (results table + analysis)
+- [x] **Stage 6** — Comparison harness (results table + written analysis)
 - [ ] Stage 7 — Dashboard (FastAPI + Bootstrap 5 + Plotly)
 - [ ] Stage 8 — Explanation website
 - [ ] Stage 9 — Report generation (HTML / Markdown / PDF-ready)

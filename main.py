@@ -62,8 +62,10 @@ def cmd_agentic(args: argparse.Namespace) -> None:
     save_run(sim, metrics)
 
 
-def cmd_compare(_args: argparse.Namespace) -> None:
-    log.info(_STUB.format(n=6, cmd="compare"))
+def cmd_compare(args: argparse.Namespace) -> None:
+    from backend.compare import run_comparison
+
+    run_comparison(rerun=args.rerun)
 
 
 def cmd_dashboard(_args: argparse.Namespace) -> None:
@@ -120,6 +122,12 @@ def build_parser() -> argparse.ArgumentParser:
             "--hours", type=int, default=None,
             help="only run the first N hours of the eval window (for testing)",
         )
+
+    # Stage 6 option: force fresh runs instead of reusing saved ones.
+    subparsers["compare"].add_argument(
+        "--rerun", action="store_true",
+        help="re-run all three approaches instead of reusing saved runs",
+    )
     return parser
 
 
