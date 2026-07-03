@@ -83,6 +83,18 @@ rule-based controller (no LLM) is the comparison floor — it writes
 `reports/run_rule_based_metrics.json` and `reports/run_rule_based_hourly.csv`.
 All three approaches are scored on the **same** evaluation week and metrics.
 
+```bash
+python main.py llm            # Stage 4: Generative-AI controller (calls Groq)
+python main.py llm --hours 4  # cheap smoke test (first 4 hours only)
+```
+
+Stage 4 adds the **Generative-AI** controller (`llm/`): each hour the microgrid
+state + forecasts are sent to a Groq LLM, which recommends a battery set-point
+and explains it in one sentence (human-in-the-loop; single prompt, no tools). It
+records the real cost of the LLM — **Groq call count, tokens, latency** — and
+saves a `rationale` per hour. Requires `GROQ_API_KEY` in `.env`. Unparseable
+replies fall back to a safe idle action, so a hiccup never crashes the run.
+
 > Requires Python 3.10+ (developed on 3.10; 3.12+ recommended).
 
 ---
@@ -114,7 +126,7 @@ Microgrid_AI/
 - [x] **Stage 1** — Data (synthetic hourly dataset + data dictionary, reproducible)
 - [x] **Stage 2** — Forecasting (RF / GB / XGBoost; MAE/RMSE vs naive; persist best)
 - [x] **Stage 3** — Rule-based baseline EMS (shared environment + metrics)
-- [ ] Stage 4 — Generative AI (LangChain + Groq)
+- [x] **Stage 4** — Generative AI (LangChain + Groq; recommends + explains)
 - [ ] Stage 5 — Agentic AI (LangGraph)
 - [ ] Stage 6 — Comparison harness (results table + analysis)
 - [ ] Stage 7 — Dashboard (FastAPI + Bootstrap 5 + Plotly)

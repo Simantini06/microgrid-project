@@ -36,8 +36,17 @@ def cmd_baseline(_args: argparse.Namespace) -> None:
     save_run(sim, metrics)
 
 
-def cmd_llm(_args: argparse.Namespace) -> None:
-    log.info(_STUB.format(n=4, cmd="llm"))
+def cmd_llm(args: argparse.Namespace) -> None:
+    from ems.environment import load_eval_window
+    from ems.runner import run_controller, save_run
+    from llm.generative import GenerativeController
+
+    window = load_eval_window()
+    if args.hours:
+        window = window.head(args.hours)
+        log.info("Limiting run to first %d hour(s) for testing.", args.hours)
+    sim, metrics = run_controller(GenerativeController(), window)
+    save_run(sim, metrics)
 
 
 def cmd_agentic(_args: argparse.Namespace) -> None:
@@ -95,6 +104,13 @@ def build_parser() -> argparse.ArgumentParser:
         "--seed", type=int, default=42,
         help="random seed for reproducibility (default: 42)",
     )
+
+    # Stage 4/5 options: cap hours for a quick/cheap test run.
+    for _name in ("llm", "agentic"):
+        subparsers[_name].add_argument(
+            "--hours", type=int, default=None,
+            help="only run the first N hours of the eval window (for testing)",
+        )
     return parser
 
 
