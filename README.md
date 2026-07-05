@@ -155,6 +155,22 @@ time) — handy for a viva or hand-in. Every figure is read from
 `reports/comparison.json` and `models/forecast_metrics.json` at build time —
 nothing is hand-typed. Run it after `compare`, then open `frontend/index.html`.
 
+```bash
+python main.py report                    # Stage 9: build the formal report (md + html + docx)
+python main.py report --format html docx # only selected formats
+```
+
+Stage 9 generates the **formal comparative report** (`report/generate.py`) in
+three formats from one shared, grounded content model — so they never drift:
+`reports/report.md` (Markdown), `reports/report.html` (**self-contained &
+print-friendly** — open it and use the browser's *Print → Save as PDF* for a
+clean PDF), and `reports/Microgrid_AI_Comparative_Report.docx` (**Word**,
+editable). It contains an abstract, the problem/system, the three approaches,
+methodology + the forecasting-accuracy table, the full head-to-head results
+table (best value highlighted per row), the analysis, and the honest conclusion
+with caveats. Every number is read from `reports/comparison.json` and
+`models/forecast_metrics.json` — nothing hand-typed. Run it after `compare`.
+
 > Requires Python 3.10+ (developed on 3.10; 3.12+ recommended).
 
 ---
@@ -172,6 +188,7 @@ Microgrid_AI/
   llm/               # Stage 4 — LangChain + Groq generative layer
   backend/           # Stage 6/7 — comparison harness + FastAPI
   frontend/          # Stage 8 — educational explanation website
+  report/            # Stage 9 — formal report generator (md / html / docx)
   utils/             # logging, shared metrics, IO helpers
   data/              # processed data + data dictionary  (gitignored)
   dataset/           # raw / external data               (gitignored)
@@ -191,7 +208,7 @@ Microgrid_AI/
 - [x] **Stage 6** — Comparison harness (results table + written analysis)
 - [x] **Stage 7** — Dashboard (FastAPI + Bootstrap 5 + Plotly, local)
 - [x] **Stage 8** — Explanation website (static, self-contained, offline)
-- [ ] Stage 9 — Report generation (HTML / Markdown / PDF-ready)
+- [x] **Stage 9** — Report generation (Markdown / HTML / Word; HTML print-to-PDF)
 - [ ] Stage 10 — README & polish
 
 ## References

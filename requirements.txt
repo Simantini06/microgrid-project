@@ -19,6 +19,9 @@ jinja2>=3.1
 python-multipart>=0.0.9
 aiofiles>=23.2
 
+# ---- Reporting (Stage 9) ----
+python-docx>=1.1        # Word (.docx) report export
+
 # ---- Utilities ----
 python-dotenv>=1.0
 pydantic>=2.6

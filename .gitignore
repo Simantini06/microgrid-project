@@ -20,6 +20,7 @@ reports/*.md
 reports/*.pdf
 reports/*.csv
 reports/*.json
+reports/*.docx
 reports/.ckpt_*.csv
 frontend/index.html
 

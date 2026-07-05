@@ -82,8 +82,10 @@ def cmd_site(_args: argparse.Namespace) -> None:
     build_site()
 
 
-def cmd_report(_args: argparse.Namespace) -> None:
-    log.info(_STUB.format(n=9, cmd="report"))
+def cmd_report(args: argparse.Namespace) -> None:
+    from report.generate import generate_report
+
+    generate_report(formats=args.format)
 
 
 # (command name, help text, handler)
@@ -96,7 +98,7 @@ _COMMANDS = [
     ("compare", "Stage 6: run the comparison harness (baseline vs LLM vs agentic)", cmd_compare),
     ("dashboard", "Stage 7: launch the FastAPI dashboard", cmd_dashboard),
     ("site", "Stage 8: build the static explanation website", cmd_site),
-    ("report", "Stage 9: generate reports (HTML / Markdown / PDF-ready)", cmd_report),
+    ("report", "Stage 9: generate the report (Markdown / HTML / Word)", cmd_report),
 ]
 
 
@@ -138,6 +140,13 @@ def build_parser() -> argparse.ArgumentParser:
     subparsers["compare"].add_argument(
         "--rerun", action="store_true",
         help="re-run all three approaches instead of reusing saved runs",
+    )
+
+    # Stage 9 option: pick one or more output formats (default: all).
+    subparsers["report"].add_argument(
+        "--format", nargs="+", choices=["md", "html", "docx"], default=None,
+        metavar="FMT",
+        help="report formats to generate: md html docx (default: all three)",
     )
 
     # Stage 7 options: dashboard host/port.
