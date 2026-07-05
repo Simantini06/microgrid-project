@@ -76,6 +76,12 @@ def cmd_dashboard(args: argparse.Namespace) -> None:
     uvicorn.run("backend.app:app", host=args.host, port=args.port, reload=False)
 
 
+def cmd_site(_args: argparse.Namespace) -> None:
+    from frontend.build_site import build_site
+
+    build_site()
+
+
 def cmd_report(_args: argparse.Namespace) -> None:
     log.info(_STUB.format(n=9, cmd="report"))
 
@@ -89,6 +95,7 @@ _COMMANDS = [
     ("agentic", "Stage 5: run the Agentic-AI (LangGraph) approach", cmd_agentic),
     ("compare", "Stage 6: run the comparison harness (baseline vs LLM vs agentic)", cmd_compare),
     ("dashboard", "Stage 7: launch the FastAPI dashboard", cmd_dashboard),
+    ("site", "Stage 8: build the static explanation website", cmd_site),
     ("report", "Stage 9: generate reports (HTML / Markdown / PDF-ready)", cmd_report),
 ]
 

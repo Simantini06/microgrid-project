@@ -21,6 +21,7 @@ reports/*.pdf
 reports/*.csv
 reports/*.json
 reports/.ckpt_*.csv
+frontend/index.html
 
 # OS / editor
 .DS_Store

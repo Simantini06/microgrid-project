@@ -23,9 +23,10 @@ REPORTS_DIR = BASE_DIR / "reports"     # generated reports
 LOGS_DIR = BASE_DIR / "logs"
 STATIC_DIR = BASE_DIR / "static"
 TEMPLATES_DIR = BASE_DIR / "templates"
+FRONTEND_DIR = BASE_DIR / "frontend"   # Stage 8 - static explanation website
 
 for _d in (DATASET_DIR, DATA_DIR, MODELS_DIR, REPORTS_DIR, LOGS_DIR,
-           STATIC_DIR, TEMPLATES_DIR):
+           STATIC_DIR, TEMPLATES_DIR, FRONTEND_DIR):
     _d.mkdir(exist_ok=True)
 
 # --- Groq / LLM configuration ----------------------------------------------

@@ -141,6 +141,20 @@ cumulative cost), and a sample of the LLM decision rationales side by side. No
 cloud or Docker — open http://127.0.0.1:8000 after launching. (Bootstrap/Plotly
 load from CDN, so the first load needs internet.)
 
+```bash
+python main.py site               # Stage 8: build the static explanation website
+```
+
+Stage 8 generates a **single self-contained** `frontend/index.html` from the
+saved results (`frontend/build_site.py`): a presentation-style page that
+explains the microgrid problem, the three AI paradigms, how they were compared,
+and the honest findings. Unlike the Stage 7 dashboard, it is a **static, offline
+artefact** — all CSS is inlined and every chart is drawn with plain HTML/CSS
+bars, so it opens with a double-click (no server, no internet, no Python at view
+time) — handy for a viva or hand-in. Every figure is read from
+`reports/comparison.json` and `models/forecast_metrics.json` at build time —
+nothing is hand-typed. Run it after `compare`, then open `frontend/index.html`.
+
 > Requires Python 3.10+ (developed on 3.10; 3.12+ recommended).
 
 ---
@@ -176,7 +190,7 @@ Microgrid_AI/
 - [x] **Stage 5** — Agentic AI (LangGraph ReAct agent; simulates + acts)
 - [x] **Stage 6** — Comparison harness (results table + written analysis)
 - [x] **Stage 7** — Dashboard (FastAPI + Bootstrap 5 + Plotly, local)
-- [ ] Stage 8 — Explanation website
+- [x] **Stage 8** — Explanation website (static, self-contained, offline)
 - [ ] Stage 9 — Report generation (HTML / Markdown / PDF-ready)
 - [ ] Stage 10 — README & polish
 
