@@ -11,13 +11,15 @@ Everything is **local, runnable, and reproducible**. The deliverable is a
 results table + written analysis showing where agentic AI helps — and where it
 does **not** beat the simpler approaches.
 
-> **Build status:** Stage 0 (Scaffold) complete. Stages 1–10 in progress.
+> **Build status:** ✅ Complete — all 10 stages built, run end-to-end, and
+> documented below. Every result quoted here comes from an actual run on the
+> shared 72-hour evaluation window; nothing is invented (see **Caveats**).
 
 ---
 
 ## Tech stack
 Python · Pandas · NumPy · scikit-learn · XGBoost · Plotly · **Groq API** ·
-LangChain · LangGraph · FastAPI · Bootstrap 5 · SQLite.
+LangChain · LangGraph · FastAPI · Jinja2 · Bootstrap 5 · python-docx.
 
 **LLM provider: Groq only.** Models (verified on
 [Groq docs](https://console.groq.com/docs/models)):
@@ -27,12 +29,12 @@ Both the Generative-AI and Agentic-AI controllers use the **same** model
 (`EMS_LLM_MODEL`, default `llama-3.1-8b-instant`) so the comparison is fair —
 same model, different paradigm. The 8B default is deliberate: the agentic loop
 makes several calls per hour, and Groq's free tier caps the 70B model at 100k
-tokens/day (too little for a full agentic week), whereas the 8B model's daily
+tokens/day (too little for a multi-day agentic run), whereas the 8B model's daily
 budget comfortably fits it. Set `EMS_LLM_MODEL=llama-3.3-70b-versatile` in `.env`
 if you have paid Groq quota and want higher-quality reasoning.
 
 ## Comparison metrics (the spine of the project)
-- Forecast accuracy: **MAE / RMSE** per target (solar, wind, demand, SoC)
+- Forecast accuracy: **MAE / RMSE** per target (solar, wind, demand)
 - Daily **energy cost (₹)**, **% renewable utilisation**, **CO₂ saved**
 - **LLM call count** and **token cost** per approach
 - **Decision latency** (wall-clock) per approach
@@ -55,6 +57,27 @@ pip install -r requirements.txt
 # 3. configure secrets
 copy .env.example .env       # then edit .env and add your GROQ_API_KEY
 ```
+
+## Reproduce everything (one sequence)
+
+From a fresh clone, this runs the whole pipeline end-to-end. Only the two LLM
+stages (`llm`, `agentic`) need a `GROQ_API_KEY` and spend tokens; everything
+else is free and offline.
+
+```bash
+python main.py data          # 1. synthetic dataset (reproducible from seed)
+python main.py forecast      # 2. train + persist the best forecaster per target
+python main.py baseline      # 3. rule-based EMS run
+python main.py llm           # 4. Generative-AI run   (Groq; ~25k tokens)
+python main.py agentic       # 5. Agentic-AI run      (Groq; ~130k tokens)
+python main.py compare       # 6. head-to-head table + written analysis
+python main.py site          # 8. static explanation website  -> frontend/index.html
+python main.py report        # 9. formal report (md + html + docx) -> reports/
+python main.py dashboard     # 7. live dashboard at http://127.0.0.1:8000
+```
+
+`compare`, `site`, and `report` **reuse** the saved runs, so re-running them
+never re-spends tokens. Each stage is explained in detail below.
 
 ## Run
 
@@ -81,7 +104,7 @@ calendar + lagged-actual features (realistic day-ahead framing — no perfect
 future weather); wind is deliberately the hardest target.
 
 ```bash
-python main.py baseline      # Stage 3: run the rule-based EMS over the eval week
+python main.py baseline      # Stage 3: run the rule-based EMS over the eval window
 ```
 
 Stage 3 introduces the shared **EMS environment** (`ems/`): battery physics,
@@ -89,7 +112,8 @@ energy balance, cost/CO₂/renewable accounting, and a common controller contrac
 Controllers **decide on forecasts**; the environment **settles on actuals**. The
 rule-based controller (no LLM) is the comparison floor — it writes
 `reports/run_rule_based_metrics.json` and `reports/run_rule_based_hourly.csv`.
-All three approaches are scored on the **same** evaluation week and metrics.
+All three approaches are scored on the **same** 72-hour evaluation window and
+metrics.
 
 ```bash
 python main.py llm            # Stage 4: Generative-AI controller (calls Groq)
@@ -113,7 +137,7 @@ that, each hour, calls a `evaluate_battery_action` tool to simulate candidate
 set-points against the real environment physics, reads back their cost / CO₂ /
 resulting SoC, then **autonomously commits** the best action (closed-loop, no
 human). It accounts for every LLM call and token across the tool-use rounds
-(typically 2+ calls/hour). Same eval week and metrics as the other two.
+(typically 2+ calls/hour). Same 72-hour window and metrics as the other two.
 
 ```bash
 python main.py compare           # Stage 6: build the head-to-head comparison
@@ -209,7 +233,49 @@ Microgrid_AI/
 - [x] **Stage 7** — Dashboard (FastAPI + Bootstrap 5 + Plotly, local)
 - [x] **Stage 8** — Explanation website (static, self-contained, offline)
 - [x] **Stage 9** — Report generation (Markdown / HTML / Word; HTML print-to-PDF)
-- [ ] Stage 10 — README & polish
+- [x] **Stage 10** — README & polish (verified references, end-to-end reproduction)
+
+## Caveats (read before quoting the numbers)
+- **Synthetic data.** The dataset is clearly-labelled synthetic — generated from
+  documented physical models (solar geometry, a turbine power curve, a realistic
+  demand shape), not measured field data. It is reproducible from a fixed seed
+  but is **not** a real site.
+- **Small model, simple agent.** Both AI controllers use an 8B model on Groq's
+  free tier, and the agent is a deliberately simple single-step ReAct loop. A
+  stronger model, richer tools, or a multi-step planning horizon could shift the
+  agentic outcome — the framework here is what makes that measurable.
+- **Latency is throttled wall-clock.** LLM decision latency reflects network
+  round-trips and free-tier rate-limit back-off, not raw model speed. The
+  *ordering* (agentic > generative > rule-based) is inherent to the paradigms;
+  the absolute milliseconds are not a hardware benchmark.
+- **No fabrication.** Every number in the reports, dashboard, website, and this
+  README is read from an actual simulation run. Nothing is hand-typed or
+  invented, and no benchmark figures or citations are made up.
 
 ## References
-IEEE references will be added in Stage 10 (real, verifiable sources only).
+References are in IEEE style; each was verified against its publisher/arXiv
+record. They situate the two paradigms (generative prompting, tool-using agents)
+and the microgrid-control and LLM-for-energy context, plus the ML libraries the
+project actually uses.
+
+1. D. E. Olivares *et al.*, "Trends in microgrid control," *IEEE Trans. Smart
+   Grid*, vol. 5, no. 4, pp. 1905–1919, Jul. 2014,
+   doi: 10.1109/TSG.2013.2295514.
+2. H. Mirshekali, M. R. Shadi, F. Ghanadi Ladani, and H. R. Shaker, "A review of
+   large language models for energy systems: Applications, challenges, and
+   future prospects," *IEEE Access*, vol. 13, pp. 163162–163188, 2025,
+   doi: 10.1109/ACCESS.2025.3610994.
+3. S. Yao *et al.*, "ReAct: Synergizing reasoning and acting in language
+   models," in *Proc. Int. Conf. Learn. Represent. (ICLR)*, 2023. [Online].
+   Available: https://arxiv.org/abs/2210.03629
+4. J. Wei *et al.*, "Chain-of-thought prompting elicits reasoning in large
+   language models," in *Adv. Neural Inf. Process. Syst. (NeurIPS)*, vol. 35,
+   2022. [Online]. Available: https://arxiv.org/abs/2201.11903
+5. A. Vaswani *et al.*, "Attention is all you need," in *Adv. Neural Inf.
+   Process. Syst. (NeurIPS)*, vol. 30, 2017. [Online].
+   Available: https://arxiv.org/abs/1706.03762
+6. T. Chen and C. Guestrin, "XGBoost: A scalable tree boosting system," in
+   *Proc. 22nd ACM SIGKDD Int. Conf. Knowl. Discovery Data Mining (KDD)*, 2016,
+   pp. 785–794, doi: 10.1145/2939672.2939785.
+7. F. Pedregosa *et al.*, "Scikit-learn: Machine learning in Python," *J. Mach.
+   Learn. Res.*, vol. 12, pp. 2825–2830, 2011.

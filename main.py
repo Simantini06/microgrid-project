@@ -91,7 +91,7 @@ def cmd_report(args: argparse.Namespace) -> None:
 # (command name, help text, handler)
 _COMMANDS = [
     ("data", "Stage 1: build & feature-engineer the dataset", cmd_data),
-    ("forecast", "Stage 2: train forecasting models (solar/wind/demand/SoC)", cmd_forecast),
+    ("forecast", "Stage 2: train forecasting models (solar/wind/demand)", cmd_forecast),
     ("baseline", "Stage 3: run the rule-based EMS baseline", cmd_baseline),
     ("llm", "Stage 4: run the Generative-AI (LangChain + Groq) approach", cmd_llm),
     ("agentic", "Stage 5: run the Agentic-AI (LangGraph) approach", cmd_agentic),
