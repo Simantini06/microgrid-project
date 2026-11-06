@@ -5,7 +5,7 @@ problem three ways and compares them honestly:
 
 1. **Rule-based baseline** — a transparent heuristic EMS (the comparison floor).
 2. **Generative AI** (LangChain + Groq) — explains and recommends; human-in-the-loop.
-3. **Agentic AI** (LangGraph multi-agent) — autonomously decides and acts; closed-loop.
+3. **Agentic AI** (LangGraph ReAct agent with a simulation tool) — autonomously decides and acts; closed-loop.
 
 Everything is **local, runnable, and reproducible**. The deliverable is a
 results table + written analysis showing where agentic AI helps — and where it
@@ -201,25 +201,26 @@ with caveats. Every number is read from `reports/comparison.json` and
 
 ## Folder map
 ```
-Microgrid_AI/
+microgrid-project/
   main.py            # CLI entry point (one subcommand per stage)
   config.py          # paths, Groq model config, domain constants
-  requirements.txt   # pinned dependencies
+  requirements.txt   # dependencies (minimum versions)
   .env.example       # template for secrets (copy to .env)
+  datagen/           # Stage 1 — synthetic dataset generator
   forecast/          # Stage 2 — forecasting models
   ems/               # Stage 3 — shared environment, metrics, rule-based EMS
-  agents/            # Stage 5 — LangGraph multi-agent system
+  agents/            # Stage 5 — LangGraph ReAct agent + evaluate_battery_action tool
   llm/               # Stage 4 — LangChain + Groq generative layer
   backend/           # Stage 6/7 — comparison harness + FastAPI
   frontend/          # Stage 8 — educational explanation website
   report/            # Stage 9 — formal report generator (md / html / docx)
-  utils/             # logging, shared metrics, IO helpers
-  data/              # processed data + data dictionary  (gitignored)
-  dataset/           # raw / external data               (gitignored)
-  models/            # persisted ML models               (gitignored)
-  reports/           # generated reports                 (gitignored)
+  utils/             # logging
+  data/              # generated dataset (CSV gitignored) + data dictionary
+  dataset/           # raw / external data (CSV gitignored)
+  models/            # persisted ML models (gitignored)
+  reports/           # generated reports (gitignored)
   static/ templates/ # dashboard assets (Stage 7)
-  logs/              # run logs                           (gitignored)
+  logs/              # run logs (gitignored)
 ```
 
 ## Build stages
